@@ -1,0 +1,1 @@
+repositori ini berisi script terraform yang digunakan untuk provisioning lab ansible dengan 1 control node dan 1 manage node
