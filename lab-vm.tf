@@ -36,7 +36,7 @@ resource "azurerm_subnet" "internal" {
 
 # Membuat dan mengassign publik ip ke VM yang di provisioning supaya dapat di akses dari internet
 resource "azurerm_public_ip" "pip" {
-  count = 2
+  count = 3
   name = "${var.prefix}-pip-${count.index + 1}"
   resource_group_name = azurerm_resource_group.main.name
   location = azurerm_resource_group.main.location
@@ -70,7 +70,7 @@ resource "azurerm_network_security_group" "akses-ssh" {
 
 
 resource "azurerm_network_interface" "main" {
-  count               = 2
+  count               = 3
   name                = "${var.prefix}-nic-vm${count.index + 1}"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
@@ -90,7 +90,7 @@ resource "azurerm_network_interface" "main" {
 
 # Binding security group ke network interface yang sudah dibuat di atas.
 resource "azurerm_network_interface_security_group_association" "bind-akses-ssh" {
-    count = 2
+    count = 3
     network_interface_id      = element(azurerm_network_interface.main.*.id, count.index + 1)
     network_security_group_id = azurerm_network_security_group.akses-ssh.id
 
@@ -112,7 +112,7 @@ resource "azurerm_managed_disk" "main_group1" {
 }
 
 resource "azurerm_managed_disk" "main_group2" {
- count                = 1
+ count                = 2
  name                 = "datadisk_${2 + count.index}"
  location             = azurerm_resource_group.main.location
  resource_group_name  = azurerm_resource_group.main.name
@@ -272,7 +272,7 @@ resource "null_resource" "next" {
 
 resource "azurerm_virtual_machine" "main_vm_group2" {
 #resource "azurerm_linux_virtual_machine" "main" {
-  count = 1
+  count = 2
   name = "node${2 + count.index}"
   resource_group_name = azurerm_resource_group.main.name
   location = azurerm_resource_group.main.location
