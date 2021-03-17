@@ -6,9 +6,9 @@ systemctl restart sshd
 if [ "$HOSTNAME" == "node1" ];
 then
 hostnamectl set-hostname control.local
-yum -y install epel-release
-yum install -y ansible
-echo "P@55w0rd.1" | passwd --stdin root
+sudo yum -y install epel-release
+sudo yum install -y ansible
+echo "P@55w0rd.1" | sudo passwd --stdin root
 sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/" /etc/ssh/sshd_config
 sed -i "s/ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/" /etc/ssh/sshd_config
 systemctl restart sshd
