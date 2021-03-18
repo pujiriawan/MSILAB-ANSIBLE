@@ -1,0 +1,10 @@
+[vsftp]
+node2.internal.cloudapp.net
+
+[webservers]
+node2.internal.cloudapp.net
+node3.internal.cloudapp.net
+
+[infrastruktur:children]
+vsftp
+webservers

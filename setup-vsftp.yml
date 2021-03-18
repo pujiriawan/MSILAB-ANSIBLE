@@ -1,0 +1,100 @@
+---
+- name: Configure FTP Server
+  hosts: vsftp
+  become: yes
+  vars:
+    path: /ftp_public
+
+  tasks:
+    - name: create directory /ftp_public
+      file:
+        path: "{{ path }}"
+        state: directory
+
+    - name: install vsftpd package
+      yum:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - vsftpd
+        - ftp
+
+    - name: start vsftpd and firewalld also enable persistent on boot
+      service:
+        name: "{{ item }}"
+        enabled: yes
+        state: started
+      loop:
+        - vsftpd
+        - firewalld
+
+    
+    - name: Open access ftp services
+      firewalld:
+        service: ftp
+        permanent: yes
+        state: enabled
+        immediate: yes
+
+- name: Open access firewalld for ftp pasif port permanent
+   firewalld:
+        port: 4000-4001/tcp
+        permanent: yes
+        state: enabled
+        immediate: yes
+
+- name: create new file
+  file:
+    path: /ftp_public/teks.txt
+    state: touch
+
+- name: create new file with public
+  copy:
+    content: 'ini adalah vsftp server dengan {{ ansible_default_ipv4.address }} dan hostname nya adalah {{ ansible_hostname }}'
+    dest: /ftp_public/teks.txt
+
+    - name: configure selinux fcontext ftp
+      sefcontext:
+        target: '/ftp_public(/.*)?'
+        setype: public_content_t
+        state: present
+
+    - name: Apply new SELinux file context to filesystem
+      command: restorecon -irv /ftp_public
+
+    - name: configure selinux port for ftp
+      seport:
+        ports: 21
+        proto: tcp
+        setype: ftp_port_t
+        state: present
+        
+    - name: configure selinux port for ftp data 
+      seport:
+        ports: 20
+        proto: tcp
+        setype: ftp_data_port_t
+        state: present
+
+    - name: configure selinux boolean for ftp
+      seboolean:
+        name: "{{ item }}" 
+        state: yes
+        persistent: yes
+      loop:
+        - allow_ftpd_anon_write 
+        - allow_ftpd_full_access
+       
+        
+    - name: copy template configuration to host and then call restart services using handlers
+      template:
+        src: templates/vsftpd.conf.j2
+        dest: /etc/vsftpd/vsftpd.conf
+      notify: restart ftp
+
+
+  handlers:
+    - name: restart ftp
+      service: 
+        name: vsftpd
+        state: restarted
